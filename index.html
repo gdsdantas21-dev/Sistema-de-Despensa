@@ -122,6 +122,12 @@ th { background-color: #2b6cb0; color: white; }
       <label>Nome do Servidor Recebedor:</label>
       <input type="text" id="saida-servidor" placeholder="Nome de quem vai assinar">
     </div>
+    
+    <!-- NOVO CAMPO: JUSTIFICATIVA DE USO -->
+    <div class="form-group" style="display: block; margin-top: 10px; margin-bottom: 15px;">
+      <label>Justificativa de Uso / Destinação do Material:</label>
+      <textarea id="saida-justificativa-uso" placeholder="Descreva de forma clara e obrigatória qual será a destinação de uso destes materiais..." style="padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px; width: 100%; max-width: 630px; font-size: 13px; height: 50px; resize: vertical;"></textarea>
+    </div>
 
     <div style="background: #edf2f7; padding: 15px; border-radius: 6px; margin-top: 10px;">
       <h4>Adicionar Itens à Requisição</h4>
@@ -184,6 +190,12 @@ th { background-color: #2b6cb0; color: white; }
 
     <div id="painel-analise" style="display:none; margin-top:30px; background:#edf2f7; padding:20px; border-radius:8px; border-left: 5px solid #2b6cb0;">
       <h4 style="margin-top:0;">📋 Analisando Solicitação de: <span id="analise-setor" style="color:#1a365d;">-</span></h4>
+      
+      <!-- CAMPO NO PAINEL DE ANÁLISE: MOSTRAR JUSTIFICATIVA DO SOLICITANTE -->
+      <p style="font-size: 13px; margin-top: -5px; margin-bottom: 15px; color: #2d3748;">
+        <strong>Justificativa de Uso do Material:</strong> <span id="analise-justificativa-uso" style="font-style: italic; color: #4a5568;">-</span>
+      </p>
+
       <table id="tabela-analise-itens">
         <thead>
           <tr>
@@ -303,6 +315,8 @@ th { background-color: #2b6cb0; color: white; }
     <tbody></tbody>
   </table>
   <div class="print-obs">
+    <!-- EXIBIÇÃO DA JUSTIFICATIVA NA VIA IMPRESSA -->
+    <strong>Justificativa de Uso / Destinação:</strong> <span id="p-justificativa-uso" style="font-style: italic;">-</span><br><br>
     <strong>Observações / Justificativa Logística:</strong><br>
     A liberação deste quantitativo atende aos critérios internos de rotatividade, controle de saldo real da despensa centralizada e cronograma de reposição de insumos.
   </div>
@@ -549,6 +563,10 @@ function inicializarOuvintesSincronizados() {
         let h = doc.data();
         window.listaHistorico[doc.id] = h;
         let corStatus = h.status === 'Aprovado' ? '#38a169' : '#e53e3e';
+        
+        // MOSTRAR BOTÃO DA JUSTIFICATIVA DE USO NO HISTÓRICO DO ADMIN (SE TIVER)
+        let botaoUso = h.justificativaUso ? `<button onclick="alert('Justificativa de Uso do Setor:\\n\\n${h.justificativaUso}')" style="background-color:#319795; padding: 4px 8px; margin-left: 4px; font-weight:bold; color:white; border-radius:4px; border:none; cursor:pointer;">📝 Uso</button>` : '';
+
         tbody.innerHTML += `<tr>
           <td>${h.dataAprovacao || h.dataSolicitacao}</td>
           <td><strong>${h.ordem || '---'}</strong></td>
@@ -557,6 +575,7 @@ function inicializarOuvintesSincronizados() {
           <td>${h.itens.length} item(ns)</td>
           <td>
             ${h.status === 'Aprovado' ? `<button onclick="imprimirComprovante('${doc.id}')" style="background-color:#dd6b20; padding: 4px 8px;">🖨 Recibo de Entrega</button>` : `<button onclick="alert('Justificativa: ${h.justificativa || 'Não informada'}')" style="background-color:#718096; padding: 4px 8px;">📄 Ver Motivo</button>`}
+            ${botaoUso}
             <button onclick="excluirHistorico('${doc.id}')" style="background-color:#e53e3e; padding: 4px 8px; margin-left: 4px;">❌ Apagar</button>
           </td>
         </tr>`;
@@ -582,6 +601,9 @@ function inicializarOuvintesSincronizados() {
         if(h.status === 'Rejeitado') {
           acaoUsuario = `<button onclick="alert('Motivo da Rejeição:\\n\\n${h.justificativa || 'Não informada pelo administrador.'}')" style="background-color:#e53e3e; padding: 4px 8px;">⚠️ Ver Justificativa</button>`;
         }
+        
+        // BOTAO PARA O PROPRIO USUARIO VISUALIZAR A JUSTIFICATIVA QUE ENVIOU
+        let botaoUsoUsuario = h.justificativaUso ? `<button onclick="alert('Sua Justificativa de Uso Enviada:\\n\\n${h.justificativaUso}')" style="background-color:#319795; padding: 4px 8px; margin-left: 4px; font-weight:bold; color:white; border-radius:4px; border:none; cursor:pointer;">📝 Uso</button>` : '';
 
         tbody.innerHTML += `<tr>
           <td>${h.dataSolicitacao}</td>
@@ -589,7 +611,7 @@ function inicializarOuvintesSincronizados() {
           <td>${h.setor}</td>
           <td><span style="color:${statusCor}; font-weight:bold;">${h.status.toUpperCase()}</span></td>
           <td>${h.itens.length} item(ns)</td>
-          <td>${acaoUsuario}</td>
+          <td>${acaoUsuario}${botaoUsoUsuario}</td>
         </tr>`;
       });
     });
@@ -693,22 +715,25 @@ function renderizarCesta() {
 function registrarRetiradaGeral() {
   let setor = document.getElementById('saida-setor').value.trim();
   let servidor = document.getElementById('saida-servidor').value.trim();
+  let justificativaUso = document.getElementById('saida-justificativa-uso').value.trim();
 
   if(!setor || !servidor) return alert("Por favor, preencha o Setor Solicitante e Servidor.");
+  if(!justificativaUso) return alert("Por favor, preencha a Justificativa de Uso.");
   if(cestaNoMomento.length === 0) return alert("Adicione materiais à lista antes de confirmar.");
 
   if (userRole === 'admin') {
-    executarSaidaDiretaAdmin(setor, servidor);
+    ejecutarSaidaDiretaAdmin(setor, servidor, justificativaUso);
   } else {
-    enviarSolicitacaoPendenteUsuario(setor, servidor);
+    enviarSolicitacaoPendenteUsuario(setor, servidor, justificativaUso);
   }
 }
 
-function enviarSolicitacaoPendenteUsuario(setor, servidor) {
+function enviarSolicitacaoPendenteUsuario(setor, servidor, justificativaUso) {
   db.collection('solicitacoes').add({
     dataSolicitacao: new Date().toLocaleString('pt-BR'),
     setor: setor,
     servidor: servidor,
+    justificativaUso: justificativaUso,
     itens: [...cestaNoMomento],
     status: "Pendente",
     usuarioEmail: auth.currentUser.email,
@@ -717,13 +742,14 @@ function enviarSolicitacaoPendenteUsuario(setor, servidor) {
     cestaNoMomento = [];
     document.getElementById('saida-setor').value = '';
     document.getElementById('saida-servidor').value = '';
+    document.getElementById('saida-justificativa-uso').value = '';
     renderizarCesta();
     alert("Solicitação enviada! Aguarde a validação e liberação do administrador.");
     switchTab('historico');
   });
 }
 
-async function ejecutarSaidaDiretaAdmin(setor, servidor) {
+async function ejecutarSaidaDiretaAdmin(setor, servidor, justificativaUso) {
   let batch = db.batch();
   let numOrdem = "ORD-" + Math.floor(1000 + Math.random() * 9000);
 
@@ -739,6 +765,7 @@ async function ejecutarSaidaDiretaAdmin(setor, servidor) {
     dataAprovacao: new Date().toLocaleString('pt-BR'),
     setor: setor,
     servidor: servidor,
+    justificativaUso: justificativaUso,
     itens: [...cestaNoMomento],
     status: "Aprovado",
     usuarioEmail: auth.currentUser.email,
@@ -749,6 +776,7 @@ async function ejecutarSaidaDiretaAdmin(setor, servidor) {
   cestaNoMomento = [];
   document.getElementById('saida-setor').value = '';
   document.getElementById('saida-servidor').value = '';
+  document.getElementById('saida-justificativa-uso').value = '';
   renderizarCesta();
   alert("Ordem de Fornecimento gravada e estoque baixado diretamente!");
   switchTab('historico');
@@ -764,6 +792,9 @@ function analisarSolicitacao(id) {
 
   document.getElementById('painel-analise').style.display = 'block';
   document.getElementById('analise-setor').innerText = dados.setor + " (Servidor: " + dados.servidor + ")";
+  
+  // MOSTRAR A JUSTIFICATIVA DO PEDIDO NO PAINEL DE ANÁLISE
+  document.getElementById('analise-justificativa-uso').innerText = dados.justificativaUso || "Não informada pelo solicitante";
 
   let tbody = document.querySelector('#tabela-analise-itens tbody');
   tbody.innerHTML = '';
@@ -882,6 +913,7 @@ function excluirMaterial(cod) {
   if(confirm("Remover permanentemente o material " + cod + "?")) db.collection('estoque').doc(cod).delete();
 }
 
+// ATUALIZAÇÃO DA EXCLUSÃO DE USUÁRIO PARA CORRESPONDER AO FLUXO DA DESPENSA
 function excluirUsuario(uid) {
   if(confirm("Deseja remover as permissões de acesso deste usuário no sistema?\nNota: Para exclusão total da credencial de login, delete-a também pelo console do Firebase Auth.")) {
     db.collection('usuarios').doc(uid).delete().then(() => {
@@ -910,6 +942,9 @@ function imprimirComprovante(id) {
   document.getElementById('p-data').innerText = mov.dataAprovacao || mov.dataSolicitacao;
   document.getElementById('p-setor').innerText = mov.setor;
   document.getElementById('p-servidor').innerText = mov.servidor;
+  
+  // ALIMENTAR A JUSTIFICATIVA DE USO NO COMPROVANTE FÍSICO IMPRESSO
+  document.getElementById('p-justificativa-uso').innerText = mov.justificativaUso || "Não informada";
 
   if(esPendente) {
     document.getElementById('p-print-term').innerText = "Este documento é uma cópia provisória da solicitação para fins de conferência física e triagem pelo responsável da despensa.";
