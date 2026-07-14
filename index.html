@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Despensa</title>
-    <!-- Tailwind CSS para um design moderno -->
+    <!-- Tailwind CSS para um design limpo e moderno -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-height-screen">
+<body class="bg-gray-100 min-h-screen flex flex-col justify-between">
 
     <!-- TELA DE LOGIN -->
     <div id="loginScreen" class="flex items-center justify-center min-h-screen">
@@ -46,7 +46,7 @@
                     <!-- Container das linhas de materiais -->
                     <div id="materialsContainer" class="space-y-3">
                         <!-- Primeira Linha de Material (Padrão) -->
-                        <div class="flex gap-3 item-row">
+                        <div class="flex gap-3 item-row items-end">
                             <div class="flex-1">
                                 <label class="block text-xs font-bold text-gray-600 mb-1">Nome do Material</label>
                                 <input type="text" required class="w-full p-2 border rounded input-nome" placeholder="Ex: Arroz 5kg">
@@ -55,10 +55,8 @@
                                 <label class="block text-xs font-bold text-gray-600 mb-1">Qtd</label>
                                 <input type="number" required min="1" class="w-full p-2 border rounded input-qtd" placeholder="1">
                             </div>
-                            <div class="w-12 flex items-end pb-1">
-                                <!-- Botão de remover (escondido na primeira linha) -->
-                                <button type="button" class="text-red-500 hover:text-red-700 text-xl font-bold p-1 hidden btn-remove-row" onclick="removerLinha(this)">&times;</button>
-                            </div>
+                            <!-- Espaço reservado para alinhar com o botão de remover das outras linhas -->
+                            <div class="w-10"></div>
                         </div>
                     </div>
 
@@ -87,7 +85,7 @@
                             </tr>
                         </thead>
                         <tbody id="stockTableBody">
-                            <!-- Inserido dinamicamente -->
+                            <!-- Preenchido via banco de dados -->
                         </tbody>
                     </table>
                 </div>
@@ -114,9 +112,9 @@
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         // ==========================================
-        // CONFIGURAÇÃO DO SEU FIREBASE (Cole as suas chaves aqui)
+        // CONFIGURAÇÃO DO FIREBASE (Substitua pelos seus dados!)
         // ==========================================
-       const firebaseConfig = {
+        const firebaseConfig = {
   apiKey: "AIzaSyBPFr8ruaZUqikKgCCKlwaQh2PE-AR1Y3M",
   authDomain: "sistema-de-despensa-46dd6.firebaseapp.com",
   projectId: "sistema-de-despensa-46dd6",
@@ -125,7 +123,6 @@
   appId: "1:311759028034:web:2adde2835d6904c45912db",
   measurementId: "G-P82BPCYH6S"
 };
-
 
         // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
@@ -144,7 +141,7 @@
         const stockTableBody = document.getElementById('stockTableBody');
 
         // ==========================================
-        // 1. LOGIN COM PERSISTÊNCIA DE SESSÃO (Fecha a aba = Faz Logout)
+        // 1. LOGIN COM PERSISTÊNCIA DE SESSÃO (Fecha a aba = Desloga)
         // ==========================================
         btnLogin.addEventListener('click', () => {
             const email = document.getElementById('loginEmail').value;
@@ -153,7 +150,6 @@
 
             errorElement.classList.add('hidden');
 
-            // Define para deslogar ao fechar a aba ANTES de fazer o login
             setPersistence(auth, browserSessionPersistence)
                 .then(() => {
                     return signInWithEmailAndPassword(auth, email, password);
@@ -161,29 +157,30 @@
                 .catch((error) => {
                     errorElement.textContent = "Usuário ou senha incorretos, ou acesso revogado.";
                     errorElement.classList.remove('hidden');
-                    console.error("Erro no login:", error);
+                    console.error("Erro de login:", error);
                 });
         });
 
-        // Evento de Logout Manual
+        // Evento do botão sair
         btnLogout.addEventListener('click', () => {
             signOut(auth);
         });
 
-        // Monitorar estado do Usuário (E bloquear se for removido no console)
+        // ==========================================
+        // 2. CONTROLE DE ESTADO DO USUÁRIO & VERIFICAÇÃO DE BLOQUEIO
+        // ==========================================
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Verificação ativa: força a atualização do token para saber se ele ainda existe/está ativo
+                // Força a validação do token com o Firebase para garantir que o usuário não foi desativado ou deletado
                 user.getIdToken(true)
                     .then(() => {
-                        // Se o token for válido e o usuário existir ativo:
                         loginScreen.classList.add('hidden');
                         appScreen.classList.remove('hidden');
                         userEmailDisplay.textContent = user.email;
                         carregarEstoque();
                     })
                     .catch((error) => {
-                        // Se o usuário foi excluído ou desativado no Firebase, o token falha e ele é expulso na hora
+                        // Se o usuário foi bloqueado no console, isso falha e ele é deslogado na hora
                         console.log("Acesso revogado pelo Administrador.");
                         signOut(auth);
                     });
@@ -194,34 +191,28 @@
         });
 
         // ==========================================
-        // 2. ADICIONAR MÚLTIPLOS MATERIAIS DE UMA VEZ
+        // 3. ADICIONAR MÚLTIPLOS MATERIAIS
         // ==========================================
         
-        // Adicionar uma nova linha de inputs
+        // Adiciona nova linha de inputs ao clicar no botão
         btnAddRow.addEventListener('click', () => {
             const novaLinha = document.createElement('div');
-            novaLinha.className = "flex gap-3 item-row mt-2";
+            novaLinha.className = "flex gap-3 item-row items-end mt-2";
             novaLinha.innerHTML = `
                 <div class="flex-1">
-                    <input type="text" required class="w-full p-2 border rounded input-nome" placeholder="Ex: Arroz 5kg">
+                    <input type="text" required class="w-full p-2 border rounded input-nome" placeholder="Ex: Feijão 1kg">
                 </div>
                 <div class="w-24">
                     <input type="number" required min="1" class="w-full p-2 border rounded input-qtd" placeholder="1">
                 </div>
-                <div class="w-12 flex items-center justify-center">
-                    <button type="button" class="text-red-500 hover:text-red-700 text-xl font-bold p-1 btn-remove-row" onclick="removerLinha(this)">&times;</button>
+                <div class="w-10 flex justify-center pb-2">
+                    <button type="button" class="text-red-500 hover:text-red-700 text-2xl font-bold p-1 leading-none" onclick="this.closest('.item-row').remove()">&times;</button>
                 </div>
             `;
             materialsContainer.appendChild(novaLinha);
         });
 
-        // Função global para remover a linha clicada (necessário escopo global no window)
-        window.removerLinha = function(botao) {
-            const linha = botao.closest('.item-row');
-            linha.remove();
-        };
-
-        // Salvar todos os materiais preenchidos de uma vez
+        // Envia todos os materiais adicionados de uma vez
         materialForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
@@ -230,7 +221,7 @@
 
             if (!currentUser) return;
 
-            // Percorre todas as linhas criadas no formulário e envia cada uma ao Firebase
+            // Varre as linhas e faz o envio de cada uma delas
             linhas.forEach((linha) => {
                 const nome = linha.querySelector('.input-nome').value.trim();
                 const quantidade = parseInt(linha.querySelector('.input-qtd').value);
@@ -245,9 +236,9 @@
                 }
             });
 
-            // Reseta o formulário para apenas uma linha limpa
+            // Reseta o formulário limpando as linhas extras e voltando ao estado inicial
             materialsContainer.innerHTML = `
-                <div class="flex gap-3 item-row">
+                <div class="flex gap-3 item-row items-end">
                     <div class="flex-1">
                         <label class="block text-xs font-bold text-gray-600 mb-1">Nome do Material</label>
                         <input type="text" required class="w-full p-2 border rounded input-nome" placeholder="Ex: Arroz 5kg">
@@ -256,16 +247,15 @@
                         <label class="block text-xs font-bold text-gray-600 mb-1">Qtd</label>
                         <input type="number" required min="1" class="w-full p-2 border rounded input-qtd" placeholder="1">
                     </div>
-                    <div class="w-12 flex items-end pb-1">
-                        <button type="button" class="text-red-500 hover:text-red-700 text-xl font-bold p-1 hidden btn-remove-row" onclick="removerLinha(this)">&times;</button>
-                    </div>
+                    <div class="w-10"></div>
                 </div>
             `;
+            
             alert("Todos os materiais foram inseridos com sucesso!");
         });
 
         // ==========================================
-        // 3. CARREGAR ESTOQUE (Tempo Real)
+        // 4. CARREGAR ITENS DO ESTOQUE
         // ==========================================
         function carregarEstoque() {
             const estoqueRef = ref(db, 'estoque');
@@ -274,7 +264,6 @@
                 const data = snapshot.val();
                 
                 if (data) {
-                    // Renderiza as linhas da tabela
                     Object.keys(data).forEach((key) => {
                         const item = data[key];
                         const row = `
@@ -284,7 +273,7 @@
                                 <td class="p-3 text-gray-500 text-xs">${item.usuario || 'Anônimo'}</td>
                             </tr>
                         `;
-                        stockTableBody.insertAdjacentHTML('afterbegin', row); // Novos itens no topo
+                        stockTableBody.insertAdjacentHTML('afterbegin', row); // Insere os mais novos no topo
                     });
                 } else {
                     stockTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-500">Nenhum item em estoque.</td></tr>`;
