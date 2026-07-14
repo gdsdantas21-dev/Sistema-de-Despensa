@@ -1,343 +1,122 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Gestão de Despensa Central - Remoto</title>
-<style>
-* { box-sizing: border-box; font-family: Arial, sans-serif; }
-body { background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
-.container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-h1 { color: #1a365d; text-align: center; margin-bottom: 5px; text-transform: uppercase; font-size: 20px; }
-.subtitle { text-align: center; color: #4a5568; margin-bottom: 25px; font-size: 14px; font-style: italic; }
-
-/* Barra de Usuário */
-.user-info-bar { display: flex; justify-content: space-between; align-items: center; background: #1a365d; color: white; padding: 10px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; }
-.user-info-bar button { background: #e53e3e; margin: 0; padding: 5px 12px; }
-.user-info-bar button:hover { background: #c53030; }
-
-/* Abas */
-.tabs { display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 20px; flex-wrap: wrap; }
-.tab-btn { padding: 10px 20px; border: none; background: none; cursor: pointer; font-size: 14px; font-weight: bold; color: #718096; }
-.tab-btn.active { color: #2b6cb0; border-bottom: 3px solid #2b6cb0; }
-.tab-content { display: none; }
-.tab-content.active { display: block; }
-
-.form-group { margin-bottom: 15px; display: inline-block; vertical-align: top; margin-right: 15px; }
-label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #2d3748; }
-input, select { padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px; width: 200px; font-size: 13px; }
-button { background-color: #2b6cb0; color: white; border: none; padding: 9px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; }
-button:hover { background-color: #1a365d; }
-
-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
-th, td { border: 1px solid #cbd5e0; padding: 10px; text-align: left; }
-th { background-color: #2b6cb0; color: white; }
-
-.alert-danger { color: #e53e3e; font-weight: bold; }
-.cesta-container { background: #f7fafc; padding: 15px; border: 1px dashed #cbd5e0; border-radius: 6px; margin: 20px 0; }
-
-/* Tela de Login */
-.login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #f4f6f9; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-.login-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 100%; max-width: 400px; }
-
-/* CONFIGURAÇÃO EXCLUSIVA DE IMPRESSÃO */
-#comprovante-print, #estoque-print { display: none; }
-
-@media print {
-  body { background: white !important; color: #000 !important; padding: 0 !important; margin: 0 !important; }
-  .container, .login-overlay, .user-info-bar, .tabs, h1, .subtitle { display: none !important; }
-  
-  body.mode-comprovante #comprovante-print { display: block !important; width: 100% !important; }
-  body.mode-estoque #estoque-print { display: block !important; width: 100% !important; }
-  
-  p, td, th, div, span { font-size: 10pt !important; font-family: Arial, sans-serif !important; line-height: 1.4 !important; }
-  .print-logo-container { text-align: center; margin-bottom: 10px; border-bottom: 2px solid #234e52; padding-bottom: 5px; }
-  .print-logo-text { font-size: 12pt !important; font-weight: bold; color: #234e52; margin: 0; text-transform: uppercase; }
-  .print-header-address { font-size: 8.5pt !important; text-align: center; color: #555; margin: 2px 0 0 0; font-style: italic; }
-  .print-header .doc-title { text-align: center; font-size: 12pt !important; margin: 10px 0 15px 0; font-weight: bold; text-transform: uppercase; color: #234e52; }
-  .print-meta-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-  .print-meta-table td { border: 1px solid #cbd5e0; padding: 6px 10px; }
-  .print-label { font-weight: bold; background-color: #f7fafc; width: 25%; color: #2d3748; }
-  
-  /* FUNDO DO CABEÇALHO VERDE E LETRAS ESCURAS */
-  .print-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-  .print-table th { border: 1px solid #cbd5e0; background-color: #c6f6d5 !important; color: #1a202c !important; padding: 6px; font-weight: bold; text-transform: uppercase; }
-  .print-table td { border: 1px solid #cbd5e0; padding: 6px; text-align: center; }
-  .print-table td.left { text-align: left; padding-left: 8px; }
-  
-  .print-obs { border: 1px solid #cbd5e0; background-color: #fcfcfc; padding: 10px; margin-top: 15px; border-left: 4px solid #234e52; }
-  .print-term { color: #333; margin-top: 15px; text-align: justify; font-style: italic; }
-  .print-signatures { margin-top: 50px; padding-top: 20px; display: flex; justify-content: space-between; page-break-inside: avoid; break-inside: avoid; }
-  .print-signatures.single-box { justify-content: center; margin-top: 60px; }
-  .print-sig-box { width: 45%; text-align: center; border-top: 1px solid #4a5568; padding-top: 5px; font-weight: bold; }
-  .print-sig-box.full-width { width: 60%; }
-  .print-sig-box small { display: block; font-size: 8.5pt !important; color: #555; font-weight: normal; margin-top: 2px; }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Despensa</title>
+    <!-- Tailwind CSS para um design moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-100 min-height-screen">
 
-<!-- TELA DE LOGIN -->
-<div id="login-screen" class="login-overlay">
-  <div class="login-box">
-    <h3 style="color: #1a365d; text-align: center; margin-top: 0;">🔑 ACESSO AO SISTEMA</h3>
-    <div style="margin-bottom: 12px;">
-      <label>E-mail Corporativo:</label>
-      <input type="email" id="login-email" style="width: 100%;" placeholder="usuario@prefeitura.com">
-    </div>
-    <div style="margin-bottom: 15px;">
-      <label>Senha de Acesso:</label>
-      <input type="password" id="login-password" style="width: 100%;" placeholder="******">
-    </div>
-    <button onclick="fazerLogin()" style="width: 100%; padding: 10px;">Entrar no Sistema</button>
-    <p id="login-erro" style="color: #e53e3e; font-size: 12px; text-align: center; font-weight: bold; margin-top: 10px;"></p>
-  </div>
-</div>
-
-<!-- CONTAINER PRINCIPAL DO SISTEMA -->
-<div id="app-screen" class="container" style="display: none;">
-  <div class="user-info-bar">
-    <span>Conectado como: <strong id="user-email">-</strong> (<span id="user-role">-</span>)</span>
-    <button onclick="fazerLogout()">Sair / Logout</button>
-  </div>
-
-  <h1>Secretaria Municipal de Assistência Social</h1>
-  <div class="subtitle">Controle de Despensa Centralizado</div>
-
-  <div class="tabs">
-    <button id="btn-tab-solicitar" class="tab-btn active" onclick="switchTab('solicitar')">Fazer Solicitação</button>
-    <button id="btn-tab-pendentes" class="tab-btn" onclick="switchTab('pendentes')" style="display:none;">Solicitações Pendentes</button>
-    <button id="btn-tab-materiais" class="tab-btn" onclick="switchTab('materiais')">Materiais / Catálogo</button>
-    <button id="btn-tab-historico" class="tab-btn" onclick="switchTab('historico')">Histórico de Ordens</button>
-    <button id="btn-tab-usuarios" class="tab-btn" onclick="switchTab('usuarios')" style="display:none;">Usuários</button>
-  </div>
-
-  <!-- ABA: REALIZAR SOLICITAÇÃO -->
-  <div id="tab-solicitar" class="tab-content active">
-    <h3 id="titulo-requisicao">Nova Ordem de Fornecimento Interno</h3>
-    <div class="form-group">
-      <label>Setor Solicitante:</label>
-      <input type="text" id="saida-setor" placeholder="Ex: CRAS Centro">
-    </div>
-    <div class="form-group">
-      <label>Nome do Servidor Recebedor:</label>
-      <input type="text" id="saida-servidor" placeholder="Nome de quem vai assinar">
+    <!-- TELA DE LOGIN -->
+    <div id="loginScreen" class="flex items-center justify-center min-h-screen">
+        <div class="bg-white p-8 rounded-lg shadow-md w-96">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Login - Despensa</h2>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">E-mail</label>
+                <input type="email" id="loginEmail" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Senha</label>
+                <input type="password" id="loginPassword" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button id="btnLogin" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 font-bold transition">Entrar</button>
+            <p id="loginError" class="text-red-500 text-sm mt-3 text-center hidden"></p>
+        </div>
     </div>
 
-    <div style="background: #edf2f7; padding: 15px; border-radius: 6px; margin-top: 10px;">
-      <h4>Adicionar Itens à Requisição</h4>
-      <div class="form-group">
-        <label>Código do Material:</label>
-        <input type="text" id="saida-codigo" placeholder="Digite o código" oninput="buscarMaterialPorCodigo()">
-      </div>
-      <div class="form-group">
-        <label>Material Identificado:</label>
-        <input type="text" id="saida-nome-mat" disabled style="background:#e2e8f0; width:250px;">
-        <span id="saida-aviso-baixo" style="display:block; font-size:11px; margin-top:3px; font-weight:bold;"></span>
-      </div>
-      <div class="form-group">
-        <label>Qtd Solicitada:</label>
-        <input type="number" id="saida-qtd-sol" style="width:100px;">
-      </div>
-      <div class="form-group" id="div-qtd-liberada">
-        <label>Qtd Liberada:</label>
-        <input type="number" id="saida-qtd-lib" style="width:100px;">
-      </div>
-      <button onclick="adicionarItemNaCesta()" style="background-color: #319795; margin-top:22px;">＋ Adicionar Item</button>
+    <!-- PAINEL PRINCIPAL (SISTEMA) -->
+    <div id="appScreen" class="hidden min-h-screen flex flex-col">
+        <!-- Barra de Navegação -->
+        <nav class="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md">
+            <h1 class="text-xl font-bold">Controle de Despensa</h1>
+            <div class="flex items-center gap-4">
+                <span id="userEmailDisplay" class="text-sm bg-blue-700 px-3 py-1 rounded"></span>
+                <button id="btnLogout" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm font-bold transition">Sair</button>
+            </div>
+        </nav>
+
+        <main class="p-6 max-w-4xl mx-auto w-full flex-grow">
+            <!-- Formulário de Entrada de Materiais -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h2 class="text-lg font-bold mb-4 text-gray-800">Registrar Entrada de Materiais</h2>
+                
+                <form id="materialForm">
+                    <!-- Container das linhas de materiais -->
+                    <div id="materialsContainer" class="space-y-3">
+                        <!-- Primeira Linha de Material (Padrão) -->
+                        <div class="flex gap-3 item-row">
+                            <div class="flex-1">
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Nome do Material</label>
+                                <input type="text" required class="w-full p-2 border rounded input-nome" placeholder="Ex: Arroz 5kg">
+                            </div>
+                            <div class="w-24">
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Qtd</label>
+                                <input type="number" required min="1" class="w-full p-2 border rounded input-qtd" placeholder="1">
+                            </div>
+                            <div class="w-12 flex items-end pb-1">
+                                <!-- Botão de remover (escondido na primeira linha) -->
+                                <button type="button" class="text-red-500 hover:text-red-700 text-xl font-bold p-1 hidden btn-remove-row" onclick="removerLinha(this)">&times;</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botões de Ação do Formulário -->
+                    <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
+                        <button type="button" id="btnAddRow" class="text-blue-600 hover:text-blue-800 font-bold text-sm flex items-center gap-1">
+                            ➕ Adicionar mais um material
+                        </button>
+                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-bold transition">
+                            Gravar Todos
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabela de Itens em Estoque -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-lg font-bold mb-4 text-gray-800">Itens em Estoque</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-700 text-sm font-bold border-b">
+                                <th class="p-3">Material</th>
+                                <th class="p-3 w-32">Quantidade</th>
+                                <th class="p-3 w-48">Adicionado por</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockTableBody">
+                            <!-- Inserido dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <div class="cesta-container">
-      <h4 style="margin: 0 0 10px 0; color: #2c5282;">Itens Incluídos nesta Requisição:</h4>
-      <table id="tabela-cesta">
-        <thead>
-          <tr>
-            <th>Código</th>
-            <th>Descrição</th>
-            <th>Qtd Solicitada</th>
-            <th id="th-cesta-liberada">Qtd Liberada</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td colspan="5" style="text-align:center; color:#a0aec0;">Nenhum item adicionado ainda.</td></tr>
-        </tbody>
-      </table>
-      <br>
-      <button id="btn-enviar-solicitacao" onclick="registrarRetiradaGeral()" style="width: 100%; padding: 12px; font-size: 14px;">🚀 Enviar Solicitação para o Admin</button>
-    </div>
-  </div>
+    <!-- SCRIPTS DO FIREBASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            signOut, 
+            onAuthStateChanged,
+            setPersistence,
+            browserSessionPersistence 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { 
+            getDatabase, 
+            ref, 
+            push, 
+            onValue 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  <!-- ABA: SOLICITAÇÕES PENDENTES -->
-  <div id="tab-pendentes" class="tab-content">
-    <h3>Solicitações Aguardando Aprovação</h3>
-    <table id="tabela-pendentes">
-      <thead>
-        <tr>
-          <th>Data/Hora</th>
-          <th>Setor</th>
-          <th>Servidor Solicitante</th>
-          <th>Total Itens</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <div id="painel-analise" style="display:none; margin-top:30px; background:#edf2f7; padding:20px; border-radius:8px; border-left: 5px solid #2b6cb0;">
-      <h4 style="margin-top:0;">📋 Analisando Solicitação de: <span id="analise-setor" style="color:#1a365d;">-</span></h4>
-      <table id="tabela-analise-itens">
-        <thead>
-          <tr>
-            <th>Código</th>
-            <th>Descrição</th>
-            <th>Qtd Solicitada</th>
-            <th>Qtd Liberada Oficial</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <br>
-      <button onclick="aprovarSolicitacaoAtual()" style="background-color: #2b6cb0; padding:10px 20px;">✓ Confirmar Liberação e Baixar Estoque</button>
-      <button onclick="rejeitarSolicitacaoAtual()" style="background-color: #e53e3e; padding:10px 20px; margin-left:10px;">❌ Rejeitar Pedido</button>
-    </div>
-  </div>
-
-  <!-- ABA: MATERIAIS / CATÁLOGO -->
-  <div id="tab-materiais" class="tab-content">
-    <div id="painel-cadastro-material" style="display:none; background: #edf2f7; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
-      <h3 style="margin-top:0; color:#1a365d;">Gerenciamento de Materiais / Reposição</h3>
-      <div class="form-group">
-        <label>Código do Item:</label>
-        <input type="text" id="cad-codigo" placeholder="Ex: 101, AL-02">
-      </div>
-      <div class="form-group">
-        <label>Descrição do Material:</label>
-        <input type="text" id="cad-desc" placeholder="Ex: Café Pct 250g" style="width:250px;">
-      </div>
-      <div class="form-group">
-        <label>Quantidade Atual em Estoque:</label>
-        <input type="number" id="cad-qtd" placeholder="Ex: 50">
-      </div>
-      <button onclick="cadastrarMaterial()" style="margin-top:22px;">Salvar Item</button>
-    </div>
-
-    <div style="border-bottom: 2px solid #2b6cb0; padding-bottom: 5px; margin-bottom: 15px;">
-      <h4 id="titulo-lista-materiais" style="color:#1a365d; display: inline-block; margin: 0;">Catálogo de Materiais Disponíveis</h4>
-      <button id="btn-print-estoque" onclick="imprimirEstoque()" style="background-color:#dd6b20; float: right; padding: 5px 12px; font-size: 12px; display:none;">🖨 Imprimir Saldo Real</button>
-      <div style="clear: both;"></div>
-    </div>
-
-    <table id="tabela-materiais-dinamica">
-      <thead id="cabecalho-tabela-materiais"></thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <!-- ABA: HISTÓRICO GERAL -->
-  <div id="tab-historico" class="tab-content">
-    <h4 style="color:#1a365d;">Histórico de Movimentações</h4>
-    <table id="tabela-historico">
-      <thead>
-        <tr>
-          <th>Data/Hora</th>
-          <th>Nº Ordem</th>
-          <th>Setor</th>
-          <th id="th-dinamico-historico">Servidor / Status</th>
-          <th>Total Itens</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <!-- ABA: USUÁRIOS -->
-  <div id="tab-usuarios" class="tab-content">
-    <div style="background: #edf2f7; padding: 15px; border-radius: 6px; margin-bottom: 25px;">
-      <h4 style="margin-top:0; color:#2c5282;">🔑 Cadastrar Novo Usuário no Sistema</h4>
-      <div class="form-group">
-        <label>E-mail do Servidor:</label>
-        <input type="email" id="new-user-email" placeholder="nome@prefeitura.com">
-      </div>
-      <div class="form-group">
-        <label>Senha Provisória:</label>
-        <input type="password" id="new-user-password" placeholder="Mínimo 6 dígitos">
-      </div>
-      <div class="form-group">
-        <label>Perfil de Acesso:</label>
-        <select id="new-user-role" style="width:150px;">
-          <option value="solicitante">Solicitante (Padrão)</option>
-          <option value="admin">Administrador</option>
-        </select>
-      </div>
-      <button onclick="criarNovoUsuarioAdmin()" style="background-color:#319795; margin-top:22px;">Criar Conta</button>
-    </div>
-
-    <h4 style="color:#1a365d; margin-bottom: 5px;">👥 Servidores com Acesso ao Sistema</h4>
-    <table id="tabela-usuarios-cadastrados">
-      <thead>
-        <tr>
-          <th>E-mail Corporativo</th>
-          <th>Perfil de Acesso</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- FOLHAS EXCLUSIVAS DE IMPRESSÃO -->
-<div id="comprovante-print">
-  <div class="print-logo-container">
-    <p class="print-logo-text">Prefeitura de Estrela de Alagoas</p>
-    <p class="print-header-address">Praça Luiz Duarte, nº 110, Centro — Estrela de Alagoas/AL</p>
-  </div>
-  <div class="print-header"><div class="doc-title" id="p-doc-title">Ordem de Fornecimento / Recibo de Despensa</div></div>
-  <table class="print-meta-table">
-    <tr><td class="print-label">Código / Controle:</td><td id="p-id" style="font-weight: bold; color: #234e52;">-</td><td class="print-label">Data/Hora:</td><td id="p-data">-</td></tr>
-    <tr><td class="print-label">Setor Destinatário:</td><td id="p-setor" colspan="3" style="font-weight: bold;">-</td></tr>
-    <tr><td class="print-label">Servidor Registrado:</td><td id="p-servidor" colspan="3">-</td></tr>
-  </table>
-  <table class="print-table" id="print-tabela-itens">
-    <thead><tr><th style="width: 15%;">Código</th><th style="width: 55%;">Descrição do Material Fornecido</th><th style="width: 15%;">Qtd. Solicitada</th><th style="width: 15%;">Qtd. Entregue</th></tr></thead>
-    <tbody></tbody>
-  </table>
-  <div class="print-obs">
-    <strong>Observações / Justificativa Logística:</strong><br>
-    A liberação deste quantitativo atende aos critérios internos de rotatividade, controle de saldo real da despensa centralizada e cronograma de reposição de insumos.
-  </div>
-  <p class="print-term" id="p-print-term">-</p>
-  <div class="print-signatures">
-    <div class="print-sig-box"><br><br><span>Assinatura do Servidor Recebedor</span><small>Setor Solicitante / Destinatário</small></div>
-    <div class="print-sig-box"><br><br><span>Responsável pela Despensa</span><small>Responsável pela Liberação / Controle de Insumos</small></div>
-  </div>
-</div>
-
-<div id="estoque-print">
-  <div class="print-logo-container">
-    <p class="print-logo-text">Prefeitura de Estrela de Alagoas</p>
-    <p class="print-header-address">Praça Luiz Duarte, nº 110, Centro — Estrela de Alagoas/AL</p>
-  </div>
-  <div class="print-header"><div class="doc-title">Relatório de Saldo em Estoque - Despensa Central</div></div>
-  <p style="margin-bottom: 15px;"><strong>Data/Hora de Emissão:</strong> <span id="p-estoque-data">-</span></p>
-  <table class="print-table">
-    <thead><tr><th style="width: 20%;">Código</th><th style="width: 55%;">Descrição do Material / Item</th><th style="width: 25%;">Saldo Disponível</th></tr></thead>
-    <tbody id="p-estoque-linhas"></tbody>
-  </table>
-  <div class="print-obs" style="margin-top: 30px;">Relatório emitido para fins de conferência, planejamento de compras institucionais e prestação de contas interna do controle da despensa.</div>
-  <div class="print-signatures single-box"><div class="print-sig-box full-width"><br><br><span>Responsável pela Despensa</span><small>Controle e Monitoramento de Almoxarifado Central</small></div></div>
-</div>
-
-<!-- SCRIPTS DO GOOGLE FIREBASE (VERSÃO COMPAT) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
-<script>
-// ==========================================================================
-// CONFIGURAÇÃO DO SEU FIREBASE (Mantenha as suas credenciais reais aqui)
-// ==========================================================================
-const firebaseConfig = {
+        // ==========================================
+        // CONFIGURAÇÃO DO SEU FIREBASE (Cole as suas chaves aqui)
+        // ==========================================
+       const firebaseConfig = {
   apiKey: "AIzaSyBPFr8ruaZUqikKgCCKlwaQh2PE-AR1Y3M",
   authDomain: "sistema-de-despensa-46dd6.firebaseapp.com",
   projectId: "sistema-de-despensa-46dd6",
@@ -348,610 +127,170 @@ const firebaseConfig = {
 };
 
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
 
-let cestaNoMomento = [];
-let userRole = 'solicitante';
-let solicitacaoEmAnalise = null;
+        // Elementos da Página
+        const loginScreen = document.getElementById('loginScreen');
+        const appScreen = document.getElementById('appScreen');
+        const btnLogin = document.getElementById('btnLogin');
+        const btnLogout = document.getElementById('btnLogout');
+        const userEmailDisplay = document.getElementById('userEmailDisplay');
+        const materialForm = document.getElementById('materialForm');
+        const materialsContainer = document.getElementById('materialsContainer');
+        const btnAddRow = document.getElementById('btnAddRow');
+        const stockTableBody = document.getElementById('stockTableBody');
 
-window.onafterprint = function() {
-  document.body.className = "";
-};
+        // ==========================================
+        // 1. LOGIN COM PERSISTÊNCIA DE SESSÃO (Fecha a aba = Faz Logout)
+        // ==========================================
+        btnLogin.addEventListener('click', () => {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorElement = document.getElementById('loginError');
 
-// ==========================================================================
-// MONITORAMENTO DE AUTENTICAÇÃO & ROLES
-// ==========================================================================
-auth.onAuthStateChanged(user => {
-  if (user) {
-    db.collection('usuarios').doc(user.uid).get().then(doc => {
-      if (doc.exists) {
-        userRole = doc.data().role;
-      } else {
-        userRole = 'solicitante';
-        db.collection('usuarios').doc(user.uid).set({ email: user.email, role: 'solicitante' });
-      }
-      configurarPainelPorPerfil(user, userRole);
-    }).catch(err => {
-      document.getElementById('login-erro').innerText = "Erro ao ler perfil: Verifique as regras de segurança do Firestore.";
-      auth.signOut();
-    });
-  } else {
-    document.getElementById('app-screen').style.display = 'none';
-    document.getElementById('login-screen').style.display = 'flex';
-  }
-});
+            errorElement.classList.add('hidden');
 
-function fazerLogin() {
-  let email = document.getElementById('login-email').value.trim();
-  let pass = document.getElementById('login-password').value;
-  let erroDiv = document.getElementById('login-erro');
-  erroDiv.innerText = "";
+            // Define para deslogar ao fechar a aba ANTES de fazer o login
+            setPersistence(auth, browserSessionPersistence)
+                .then(() => {
+                    return signInWithEmailAndPassword(auth, email, password);
+                })
+                .catch((error) => {
+                    errorElement.textContent = "Usuário ou senha incorretos, ou acesso revogado.";
+                    errorElement.classList.remove('hidden');
+                    console.error("Erro no login:", error);
+                });
+        });
 
-  if(!email || !pass) return alert("Preencha todos os campos.");
+        // Evento de Logout Manual
+        btnLogout.addEventListener('click', () => {
+            signOut(auth);
+        });
 
-  auth.signInWithEmailAndPassword(email, pass).catch(err => {
-    erroDiv.innerText = "Erro: Usuário ou senha inválidos.";
-  });
-}
+        // Monitorar estado do Usuário (E bloquear se for removido no console)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Verificação ativa: força a atualização do token para saber se ele ainda existe/está ativo
+                user.getIdToken(true)
+                    .then(() => {
+                        // Se o token for válido e o usuário existir ativo:
+                        loginScreen.classList.add('hidden');
+                        appScreen.classList.remove('hidden');
+                        userEmailDisplay.textContent = user.email;
+                        carregarEstoque();
+                    })
+                    .catch((error) => {
+                        // Se o usuário foi excluído ou desativado no Firebase, o token falha e ele é expulso na hora
+                        console.log("Acesso revogado pelo Administrador.");
+                        signOut(auth);
+                    });
+            } else {
+                loginScreen.classList.remove('hidden');
+                appScreen.classList.add('hidden');
+            }
+        });
 
-function fazerLogout() {
-  auth.signOut();
-}
-
-// ==========================================================================
-// ADAPTAÇÃO DA INTERFACE POR PERFIL
-// ==========================================================================
-function configurarPainelPorPerfil(user, role) {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app-screen').style.display = 'block';
-  document.getElementById('user-email').innerText = user.email;
-  document.getElementById('user-role').innerText = role === 'admin' ? 'Administrador' : 'Solicitante';
-
-  let cabecalho = document.getElementById('cabecalho-tabela-materiais');
-
-  if (role === 'admin') {
-    document.getElementById('btn-tab-pendentes').style.display = 'inline-block';
-    document.getElementById('btn-tab-usuarios').style.display = 'inline-block';
-    document.getElementById('painel-cadastro-material').style.display = 'block';
-    document.getElementById('btn-print-estoque').style.display = 'inline-block';
-    document.getElementById('div-qtd-liberada').style.display = 'inline-block';
-    document.getElementById('th-cesta-liberada').style.display = 'table-cell';
-    document.getElementById('titulo-lista-materiais').innerText = "Estoque Atual Real da Secretaria";
-    document.getElementById('th-dinamico-historico').innerText = "Servidor Recebedor";
-    document.getElementById('btn-enviar-solicitacao').innerText = "✓ Gravar e Confirmar Saída de Todos os Itens";
-    
-    cabecalho.innerHTML = `<tr>
-      <th>Código</th>
-      <th>Descrição do Item</th>
-      <th>Saldo Disponível</th>
-      <th>Ações</th>
-    </tr>`;
-
-    switchTab('pendentes');
-  } else {
-    document.getElementById('btn-tab-pendentes').style.display = 'none';
-    document.getElementById('btn-tab-usuarios').style.display = 'none';
-    document.getElementById('painel-cadastro-material').style.display = 'none';
-    document.getElementById('btn-print-estoque').style.display = 'none';
-    document.getElementById('div-qtd-liberada').style.display = 'none';
-    document.getElementById('th-cesta-liberada').style.display = 'none';
-    document.getElementById('titulo-lista-materiais').innerText = "📋 Catálogo de Materiais e Códigos";
-    document.getElementById('th-dinamico-historico').innerText = "Situação / Status";
-    document.getElementById('btn-enviar-solicitacao').innerText = "🚀 Enviar Solicitação para Análise";
-    
-    cabecalho.innerHTML = `<tr>
-      <th style="width:25%;">Código</th>
-      <th style="width:55%;">Descrição do Material</th>
-      <th style="width:20%;">Ação</th>
-    </tr>`;
-
-    switchTab('solicitar');
-  }
-  inicializarOuvintesSincronizados();
-}
-
-function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-  document.getElementById('btn-tab-' + tab).classList.add('active');
-  document.getElementById('tab-' + tab).classList.add('active');
-}
-
-// ==========================================================================
-// SINCRONIZAÇÃO EM TEMPO REAL (FIRESTORE SNAPSHOTS)
-// ==========================================================================
-function inicializarOuvintesSincronizados() {
-  db.collection('estoque').onSnapshot(snapshot => {
-    window.estoqueGlobal = {};
-    let tbody = document.querySelector('#tabela-materiais-dinamica tbody');
-    tbody.innerHTML = '';
-    
-    if(snapshot.empty) {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#a0aec0;">Nenhum material cadastrado.</td></tr>`;
-      return;
-    }
-
-    snapshot.forEach(doc => {
-      let dados = doc.data();
-      window.estoqueGlobal[doc.id] = dados;
-      
-      if(userRole === 'admin') {
-        let classeQtd = dados.qtd <= 5 ? 'class="alert-danger"' : '';
-        tbody.innerHTML += `<tr>
-          <td><strong>${doc.id}</strong></td>
-          <td>${dados.descricao}</td>
-          <td ${classeQtd}>${dados.qtd} unidades</td>
-          <td><button onclick="excluirMaterial('${doc.id}')" style="background-color:#e53e3e; padding: 5px 10px;">❌ Excluir</button></td>
-        </tr>`;
-      } else {
-        let estiloCor = dados.qtd <= 5 ? 'style="color:#e53e3e; font-weight:bold;"' : '';
-        let rotuloAviso = dados.qtd <= 5 ? ' <span style="font-size:11px; color:#e53e3e;">(Estoque Reduzido)</span>' : '';
-        tbody.innerHTML += `<tr>
-          <td ${estiloCor}><strong>${doc.id}</strong></td>
-          <td ${estiloCor}>${dados.descricao}${rotuloAviso}</td>
-          <td><button onclick="preencherCodigoDoCatalogo('${doc.id}')" style="background-color:#319795; padding:4px 8px; font-size:12px;">📋 Selecionar</button></td>
-        </tr>`;
-      }
-    });
-  });
-
-  if (userRole === 'admin') {
-    db.collection('usuarios').onSnapshot(snapshot => {
-      let tbodyUsers = document.querySelector('#tabela-usuarios-cadastrados tbody');
-      tbodyUsers.innerHTML = '';
-      snapshot.forEach(doc => {
-        let u = doc.data();
-        let labelRole = u.role === 'admin' ? '🛡️ Administrador' : '👤 Solicitante';
-        tbodyUsers.innerHTML += `<tr>
-          <td><strong>${u.email}</strong></td>
-          <td>${labelRole}</td>
-          <td>
-            ${u.email !== auth.currentUser.email ? `<button onclick="excluirUsuario('${doc.id}')" style="background-color:#e53e3e; padding: 4px 8px;">❌ Remover Acesso</button>` : '<span style="color:#718096; font-style:italic;">Sua Conta</span>'}
-          </td>
-        </tr>`;
-      });
-    }, error => {
-      console.log("Erro ao carregar lista de usuários: ", error);
-    });
-
-    db.collection('solicitacoes').where('status', '==', 'Pendente').onSnapshot(snapshot => {
-      window.listaPendentes = {};
-      let tbody = document.querySelector('#tabela-pendentes tbody');
-      tbody.innerHTML = '';
-      if(snapshot.empty) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#a0aec0;">Nenhuma solicitação aguardando aprovação.</td></tr>`;
-        return;
-      }
-      snapshot.forEach(doc => {
-        let d = doc.data();
-        window.listaPendentes[doc.id] = d;
-        tbody.innerHTML += `<tr>
-          <td>${d.dataSolicitacao}</td>
-          <td><strong>${d.setor}</strong></td>
-          <td>${d.servidor}</td>
-          <td>${d.itens.length} item(ns)</td>
-          <td>
-            <button onclick="analisarSolicitacao('${doc.id}')" style="background-color:#319795; padding:5px 10px;">Analisar e Liberar</button>
-            <button onclick="imprimirComprovante('${doc.id}')" style="background-color:#718096; padding:5px 10px; margin-left:4px;">🖨️ Ver Pedido</button>
-          </td>
-        </tr>`;
-      });
-    });
-
-    db.collection('solicitacoes').where('status', 'in', ['Aprovado', 'Rejeitado']).onSnapshot(snapshot => {
-      window.listaHistorico = {};
-      let tbody = document.querySelector('#tabela-historico tbody');
-      tbody.innerHTML = '';
-      snapshot.forEach(doc => {
-        let h = doc.data();
-        window.listaHistorico[doc.id] = h;
-        let corStatus = h.status === 'Aprovado' ? '#38a169' : '#e53e3e';
-        tbody.innerHTML += `<tr>
-          <td>${h.dataAprovacao || h.dataSolicitacao}</td>
-          <td><strong>${h.ordem || '---'}</strong></td>
-          <td>${h.setor}</td>
-          <td><span style="color:${corStatus}; font-weight:bold;">${h.status.toUpperCase()}</span></td>
-          <td>${h.itens.length} item(ns)</td>
-          <td>
-            ${h.status === 'Aprovado' ? `<button onclick="imprimirComprovante('${doc.id}')" style="background-color:#dd6b20; padding: 4px 8px;">🖨 Recibo de Entrega</button>` : `<button onclick="alert('Justificativa: ${h.justificativa || 'Não informada'}')" style="background-color:#718096; padding: 4px 8px;">📄 Ver Motivo</button>`}
-            <button onclick="excluirHistorico('${doc.id}')" style="background-color:#e53e3e; padding: 4px 8px; margin-left: 4px;">❌ Apagar</button>
-          </td>
-        </tr>`;
-      });
-    });
-  } else {
-    // VISÃO DO USUÁRIO COMUM (SEM BOTÕES DE IMPRESSÃO)
-    db.collection('solicitacoes').where('usuarioEmail', '==', auth.currentUser.email).onSnapshot(snapshot => {
-      window.listaHistorico = {};
-      let tbody = document.querySelector('#tabela-historico tbody');
-      tbody.innerHTML = '';
-      if(snapshot.empty) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#a0aec0;">Você ainda não enviou solicitações.</td></tr>`;
-        return;
-      }
-      snapshot.forEach(doc => {
-        let h = doc.data();
-        window.listaHistorico[doc.id] = h;
-        let statusCor = h.status === 'Pendente' ? '#dd6b20' : h.status === 'Rejeitado' ? '#e53e3e' : '#38a169';
+        // ==========================================
+        // 2. ADICIONAR MÚLTIPLOS MATERIAIS DE UMA VEZ
+        // ==========================================
         
-        // Ação muda dinamicamente: se rejeitado, mostra o botão do motivo. Se aprovado, fica limpo.
-        let acaoUsuario = '---';
-        if(h.status === 'Rejeitado') {
-          acaoUsuario = `<button onclick="alert('Motivo da Rejeição:\\n\\n${h.justificativa || 'Não informada pelo administrador.'}')" style="background-color:#e53e3e; padding: 4px 8px;">⚠️ Ver Justificativa</button>`;
+        // Adicionar uma nova linha de inputs
+        btnAddRow.addEventListener('click', () => {
+            const novaLinha = document.createElement('div');
+            novaLinha.className = "flex gap-3 item-row mt-2";
+            novaLinha.innerHTML = `
+                <div class="flex-1">
+                    <input type="text" required class="w-full p-2 border rounded input-nome" placeholder="Ex: Arroz 5kg">
+                </div>
+                <div class="w-24">
+                    <input type="number" required min="1" class="w-full p-2 border rounded input-qtd" placeholder="1">
+                </div>
+                <div class="w-12 flex items-center justify-center">
+                    <button type="button" class="text-red-500 hover:text-red-700 text-xl font-bold p-1 btn-remove-row" onclick="removerLinha(this)">&times;</button>
+                </div>
+            `;
+            materialsContainer.appendChild(novaLinha);
+        });
+
+        // Função global para remover a linha clicada (necessário escopo global no window)
+        window.removerLinha = function(botao) {
+            const linha = botao.closest('.item-row');
+            linha.remove();
+        };
+
+        // Salvar todos os materiais preenchidos de uma vez
+        materialForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const linhas = document.querySelectorAll('.item-row');
+            const currentUser = auth.currentUser;
+
+            if (!currentUser) return;
+
+            // Percorre todas as linhas criadas no formulário e envia cada uma ao Firebase
+            linhas.forEach((linha) => {
+                const nome = linha.querySelector('.input-nome').value.trim();
+                const quantidade = parseInt(linha.querySelector('.input-qtd').value);
+
+                if (nome && quantidade > 0) {
+                    push(ref(db, 'estoque'), {
+                        nome: nome,
+                        quantidade: quantidade,
+                        usuario: currentUser.email,
+                        dataRegistro: new Date().toISOString()
+                    });
+                }
+            });
+
+            // Reseta o formulário para apenas uma linha limpa
+            materialsContainer.innerHTML = `
+                <div class="flex gap-3 item-row">
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Nome do Material</label>
+                        <input type="text" required class="w-full p-2 border rounded input-nome" placeholder="Ex: Arroz 5kg">
+                    </div>
+                    <div class="w-24">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Qtd</label>
+                        <input type="number" required min="1" class="w-full p-2 border rounded input-qtd" placeholder="1">
+                    </div>
+                    <div class="w-12 flex items-end pb-1">
+                        <button type="button" class="text-red-500 hover:text-red-700 text-xl font-bold p-1 hidden btn-remove-row" onclick="removerLinha(this)">&times;</button>
+                    </div>
+                </div>
+            `;
+            alert("Todos os materiais foram inseridos com sucesso!");
+        });
+
+        // ==========================================
+        // 3. CARREGAR ESTOQUE (Tempo Real)
+        // ==========================================
+        function carregarEstoque() {
+            const estoqueRef = ref(db, 'estoque');
+            onValue(estoqueRef, (snapshot) => {
+                stockTableBody.innerHTML = '';
+                const data = snapshot.val();
+                
+                if (data) {
+                    // Renderiza as linhas da tabela
+                    Object.keys(data).forEach((key) => {
+                        const item = data[key];
+                        const row = `
+                            <tr class="border-b hover:bg-gray-50 text-gray-700 text-sm">
+                                <td class="p-3 font-semibold">${item.nome}</td>
+                                <td class="p-3">${item.quantidade}</td>
+                                <td class="p-3 text-gray-500 text-xs">${item.usuario || 'Anônimo'}</td>
+                            </tr>
+                        `;
+                        stockTableBody.insertAdjacentHTML('afterbegin', row); // Novos itens no topo
+                    });
+                } else {
+                    stockTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-500">Nenhum item em estoque.</td></tr>`;
+                }
+            });
         }
-
-        tbody.innerHTML += `<tr>
-          <td>${h.dataSolicitacao}</td>
-          <td><strong>${h.ordem || '---'}</strong></td>
-          <td>${h.setor}</td>
-          <td><span style="color:${statusCor}; font-weight:bold;">${h.status.toUpperCase()}</span></td>
-          <td>${h.itens.length} item(ns)</td>
-          <td>${acaoUsuario}</td>
-        </tr>`;
-      });
-    });
-  }
-}
-
-function preencherCodigoDoCatalogo(cod) {
-  document.getElementById('saida-codigo').value = cod;
-  switchTab('solicitar');
-  buscarMaterialPorCodigo();
-}
-
-// ==========================================================================
-// REGRAS OPERACIONAIS DE PESQUISA E SOLICITAÇÃO
-// ==========================================================================
-function buscarMaterialPorCodigo() {
-  let cod = document.getElementById('saida-codigo').value.trim();
-  let labelMat = document.getElementById('saida-nome-mat');
-  let avisoBaixo = document.getElementById('saida-aviso-baixo');
-
-  if(!cod) { labelMat.value = ''; avisoBaixo.innerText = ''; return; }
-
-  db.collection('estoque').doc(cod).get().then(doc => {
-    if(doc.exists) {
-      let mat = doc.data();
-      labelMat.value = mat.descricao;
-
-      if(mat.qtd <= 5) {
-        labelMat.style.color = '#e53e3e';
-        labelMat.style.fontWeight = 'bold';
-        avisoBaixo.innerText = "⚠️ ATENÇÃO: Item com estoque reduzido no almoxarifado.";
-        avisoBaixo.style.color = '#e53e3e';
-      } else {
-        labelMat.style.color = '#333';
-        labelMat.style.fontWeight = 'normal';
-        avisoBaixo.innerText = "✓ Item Disponível.";
-        avisoBaixo.style.color = '#38a169';
-      }
-    } else {
-      labelMat.value = "Não localizado!";
-      labelMat.style.color = '#718096';
-      avisoBaixo.innerText = "";
-    }
-  });
-}
-
-function adicionarItemNaCesta() {
-  let cod = document.getElementById('saida-codigo').value.trim();
-  let qsol = parseInt(document.getElementById('saida-qtd-sol').value);
-  let qlib = userRole === 'admin' ? parseInt(document.getElementById('saida-qtd-lib').value) : qsol;
-
-  if(!cod || isNaN(qsol) || qsol <= 0) return alert("Preencha o código do produto e a quantidade solicitada corretamente!");
-  if(userRole === 'admin' && isNaN(qlib)) return alert("Administrador, defina a Quantidade Liberada.");
-
-  db.collection('estoque').doc(cod).get().then(doc => {
-    if (!doc.exists) return alert("Produto não localizado no cadastro.");
-    let mat = doc.data();
-
-    if (userRole === 'admin' && qlib > mat.qtd) {
-      return alert("Estoque Insuficiente! Saldo real atual: " + mat.qtd + " unidades.");
-    }
-    if (cestaNoMomento.some(item => item.codigo === cod)) {
-      return alert("Este item já foi incluído na lista provisória.");
-    }
-
-    cestaNoMomento.push({ codigo: cod, descricao: mat.descricao, qsol: qsol, qlib: qlib });
-
-    document.getElementById('saida-codigo').value = '';
-    document.getElementById('saida-nome-mat').value = '';
-    document.getElementById('saida-qtd-sol').value = '';
-    if(document.getElementById('saida-qtd-lib')) document.getElementById('saida-qtd-lib').value = '';
-    document.getElementById('saida-aviso-baixo').innerText = '';
-
-    renderizarCesta();
-  });
-}
-
-function removerItemDaCesta(index) {
-  cestaNoMomento.splice(index, 1);
-  renderizarCesta();
-}
-
-function renderizarCesta() {
-  let tbody = document.querySelector('#tabela-cesta tbody');
-  if(cestaNoMomento.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#a0aec0;">Nenhum item adicionado ainda.</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = '';
-  cestaNoMomento.forEach((item, idx) => {
-    tbody.innerHTML += `<tr>
-        <td><strong>${item.codigo}</strong></td>
-        <td>${item.descricao}</td>
-        <td>${item.qsol}</td>
-        ${userRole === 'admin' ? `<td>${item.qlib}</td>` : ''}
-        <td><button onclick="removerItemDaCesta(${idx})" style="background-color:#e53e3e; padding:3px 8px;">❌ Remover</button></td>
-    </tr>`;
-  });
-}
-
-function registrarRetiradaGeral() {
-  let setor = document.getElementById('saida-setor').value.trim();
-  let servidor = document.getElementById('saida-servidor').value.trim();
-
-  if(!setor || !servidor) return alert("Por favor, preencha o Setor Solicitante e Servidor.");
-  if(cestaNoMomento.length === 0) return alert("Adicione materiais à lista antes de confirmar.");
-
-  if (userRole === 'admin') {
-    executarSaidaDiretaAdmin(setor, servidor);
-  } else {
-    enviarSolicitacaoPendenteUsuario(setor, servidor);
-  }
-}
-
-function enviarSolicitacaoPendenteUsuario(setor, servidor) {
-  db.collection('solicitacoes').add({
-    dataSolicitacao: new Date().toLocaleString('pt-BR'),
-    setor: setor,
-    servidor: servidor,
-    itens: [...cestaNoMomento],
-    status: "Pendente",
-    usuarioEmail: auth.currentUser.email,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(() => {
-    cestaNoMomento = [];
-    document.getElementById('saida-setor').value = '';
-    document.getElementById('saida-servidor').value = '';
-    renderizarCesta();
-    alert("Solicitação enviada! Aguarde a validação e liberação do administrador.");
-    switchTab('historico');
-  });
-}
-
-async function ejecutarSaidaDiretaAdmin(setor, servidor) {
-  let batch = db.batch();
-  let numOrdem = "ORD-" + Math.floor(1000 + Math.random() * 9000);
-
-  for(let item of cestaNoMomento) {
-    let refEstoque = db.collection('estoque').doc(item.codigo);
-    batch.update(refEstoque, { qtd: firebase.firestore.FieldValue.increment(-item.qlib) });
-  }
-
-  let novaOrdemRef = db.collection('solicitacoes').doc();
-  batch.set(novaOrdemRef, {
-    ordem: numOrdem,
-    dataSolicitacao: new Date().toLocaleString('pt-BR'),
-    dataAprovacao: new Date().toLocaleString('pt-BR'),
-    setor: setor,
-    servidor: servidor,
-    itens: [...cestaNoMomento],
-    status: "Aprovado",
-    usuarioEmail: auth.currentUser.email,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  });
-
-  await batch.commit();
-  cestaNoMomento = [];
-  document.getElementById('saida-setor').value = '';
-  document.getElementById('saida-servidor').value = '';
-  renderizarCesta();
-  alert("Ordem de Fornecimento gravada e estoque baixado diretamente!");
-  switchTab('historico');
-}
-
-// ==========================================================================
-// ROTINAS DE VALIDAÇÃO ADMINISTRATIVA
-// ==========================================================================
-function analisarSolicitacao(id) {
-  let dados = window.listaPendentes[id];
-  if(!dados) return;
-  solicitacaoEmAnalise = { id: id, ...dados };
-
-  document.getElementById('painel-analise').style.display = 'block';
-  document.getElementById('analise-setor').innerText = dados.setor + " (Servidor: " + dados.servidor + ")";
-
-  let tbody = document.querySelector('#tabela-analise-itens tbody');
-  tbody.innerHTML = '';
-
-  dados.itens.forEach((item, index) => {
-    tbody.innerHTML += `<tr>
-      <td><strong>${item.codigo}</strong></td>
-      <td>${item.descricao}</td>
-      <td>${item.qsol} unidades</td>
-      <td><input type="number" id="analise-qlib-${index}" value="${item.qsol}" style="width:90px; font-weight:bold;"></td>
-    </tr>`;
-  });
-  window.scrollTo(0, document.body.scrollHeight);
-}
-
-async function aprovarSolicitacaoAtual() {
-  if(!solicitacaoEmAnalise) return;
-  let batch = db.batch();
-  let itensFinalizados = [];
-
-  for(let i=0; i < solicitacaoEmAnalise.itens.length; i++) {
-    let item = solicitacaoEmAnalise.itens[i];
-    let qlib = parseInt(document.getElementById(`analise-qlib-${i}`).value);
-
-    if(isNaN(qlib) || qlib < 0) return alert("Insira uma quantidade liberada válida para todos os itens.");
-
-    let docEstoque = await db.collection('estoque').doc(item.codigo).get();
-    if(!docEstoque.exists) return alert(`Erro: Item ${item.codigo} sumiu do cadastro.`);
-    
-    let saldoDisponivel = docEstoque.data().qtd;
-    if(qlib > saldoDisponivel) return alert(`Estoque insuficiente de ${item.descricao}. Saldo: ${saldoDisponivel}`);
-
-    let refEstoque = db.collection('estoque').doc(item.codigo);
-    batch.update(refEstoque, { qtd: firebase.firestore.FieldValue.increment(-qlib) });
-
-    itensFinalizados.push({ codigo: item.codigo, descricao: item.descricao, qsol: item.qsol, qlib: qlib });
-  }
-
-  let numOrdem = "ORD-" + Math.floor(1000 + Math.random() * 9000);
-  let refSolicitacao = db.collection('solicitacoes').doc(solicitacaoEmAnalise.id);
-
-  batch.update(refSolicitacao, {
-    status: "Aprovado",
-    ordem: numOrdem,
-    itens: itensFinalizados,
-    dataAprovacao: new Date().toLocaleString('pt-BR')
-  });
-
-  await batch.commit();
-  alert("Solicitação aprovada e estoque baixado com sucesso!");
-  document.getElementById('painel-analise').style.display = 'none';
-  let idImprimir = solicitacaoEmAnalise.id;
-  solicitacaoEmAnalise = null;
-  
-  setTimeout(() => { imprimirComprovante(idImprimir); }, 500);
-}
-
-function rejeitarSolicitacaoAtual() {
-  if(!solicitacaoEmAnalise) return;
-  
-  // SOLICITAÇÃO DE JUSTIFICATIVA OBRIGATÓRIA
-  let motivo = prompt("Por favor, digite a JUSTIFICATIVA para a rejeição deste pedido:");
-  if (motivo === null) return; // Se clicou em cancelar, não faz nada
-  if (motivo.trim() === "") return alert("É obrigatório informar uma justificativa para rejeitar o pedido.");
-
-  db.collection('solicitacoes').doc(solicitacaoEmAnalise.id).update({ 
-    status: "Rejeitado",
-    justificativa: motivo.trim(),
-    dataAprovacao: new Date().toLocaleString('pt-BR')
-  }).then(() => {
-    alert("Solicitação arquivada como rejeitada.");
-    document.getElementById('painel-analise').style.display = 'none';
-    solicitacaoEmAnalise = null;
-  });
-}
-
-// ==========================================================================
-// CADASTROS E CONSOLE ADMINISTRATIVO (ADMIN)
-// ==========================================================================
-function cadastrarMaterial() {
-  let cod = document.getElementById('cad-codigo').value.trim();
-  let desc = document.getElementById('cad-desc').value.trim();
-  let qtd = parseInt(document.getElementById('cad-qtd').value);
-
-  if(!cod || !desc || isNaN(qtd)) return alert("Preencha todos os campos do material.");
-
-  db.collection('estoque').doc(cod).set({ descricao: desc, qtd: qtd }).then(() => {
-    document.getElementById('cad-codigo').value = '';
-    document.getElementById('cad-desc').value = '';
-    document.getElementById('cad-qtd').value = '';
-    alert("Item atualizado no banco de dados remoto!");
-  });
-}
-
-function criarNovoUsuarioAdmin() {
-  let email = document.getElementById('new-user-email').value.trim();
-  let pass = document.getElementById('new-user-password').value;
-  let role = document.getElementById('new-user-role').value;
-
-  if(!email || pass.length < 6) return alert("Defina um e-mail válido e senha com no mínimo 6 caracteres.");
-
-  try {
-    let secondaryApp = firebase.apps.find(app => app.name === "SecondaryCreator") || firebase.initializeApp(firebaseConfig, "SecondaryCreator");
-    secondaryApp.auth().createUserWithEmailAndPassword(email, pass).then((userCred) => {
-      db.collection('usuarios').doc(userCred.user.uid).set({ email: email, role: role }).then(() => {
-        alert(`Conta criada com sucesso!\nUsuário: ${email}\nNível: ${role}`);
-        document.getElementById('new-user-email').value = '';
-        document.getElementById('new-user-password').value = '';
-        secondaryApp.auth().signOut();
-      });
-    }).catch(e => alert("Erro no Firebase Auth: " + e.message));
-  } catch(err) { alert("Falha operacional: " + err.message); }
-}
-
-function excluirMaterial(cod) {
-  if(confirm("Remover permanentemente o material " + cod + "?")) db.collection('estoque').doc(cod).delete();
-}
-
-function excluirUsuario(uid) {
-  if(confirm("Deseja remover as permissões de acesso deste usuário no sistema?\nNota: Para exclusão total da credencial de login, delete-a também pelo console do Firebase Auth.")) {
-    db.collection('usuarios').doc(uid).delete().then(() => {
-      alert("Acesso revogado com sucesso no banco de dados.");
-    });
-  }
-}
-
-function excluirHistorico(id) {
-  if(confirm("Excluir esta ordem do histórico definitivo?")) db.collection('solicitacoes').doc(id).delete();
-}
-
-// ==========================================================================
-// IMPRESSÃO DE DOCUMENTOS DINÂMICOS (EXCLUSIVO ADMIN)
-// ==========================================================================
-function imprimirComprovante(id) {
-  if(userRole !== 'admin') return alert("Ação não permitida para o seu nível de acesso.");
-
-  let mov = (window.listaHistorico && window.listaHistorico[id]) || (window.listaPendentes && window.listaPendentes[id]);
-  if(!mov) return alert("Erro ao carregar dados da ordem.");
-
-  let esPendente = mov.status === 'Pendente';
-
-  document.getElementById('p-doc-title').innerText = esPendente ? "Solicitação de Material (Pendente)" : "Comprovante de Liberação / Recibo de Despensa";
-  document.getElementById('p-id').innerText = mov.ordem || "AGUARDANDO VALIDAÇÃO";
-  document.getElementById('p-data').innerText = mov.dataAprovacao || mov.dataSolicitacao;
-  document.getElementById('p-setor').innerText = mov.setor;
-  document.getElementById('p-servidor').innerText = mov.servidor;
-
-  if(esPendente) {
-    document.getElementById('p-print-term').innerText = "Este documento é uma cópia provisória da solicitação para fins de conferência física e triagem pelo responsável da despensa.";
-  } else {
-    document.getElementById('p-print-term').innerText = "Declaro para os devidos fins que recebi em conformidade os materiais acima relacionados nas quantidades descritas na coluna 'Qtd. Entregue', assumindo a responsabilidade pela guarda, zelo e destinação final exclusiva para as atividades oficiais deste setor.";
-  }
-
-  let tbodyPrint = document.querySelector('#print-tabela-itens tbody');
-  tbodyPrint.innerHTML = '';
-
-  mov.itens.forEach(item => {
-    let entregaExibida = esPendente ? item.qsol : item.qlib;
-    tbodyPrint.innerHTML += `<tr>
-        <td style="font-weight: bold;">${item.codigo}</td>
-        <td class="left">${item.descricao}</td>
-        <td>${item.qsol}</td>
-        <td style="font-weight: bold; background-color:#f7fafc;">${entregaExibida}</td>
-    </tr>`;
-  });
-
-  document.body.className = "mode-comprovante";
-  setTimeout(() => { window.print(); }, 300);
-}
-
-function imprimirEstoque() {
-  if(userRole !== 'admin') return alert("Ação não permitida.");
-  
-  document.getElementById('p-estoque-data').innerText = new Date().toLocaleString('pt-BR');
-  let tbody = document.getElementById('p-estoque-linhas');
-  tbody.innerHTML = '';
-
-  for(let cod in window.estoqueGlobal) {
-    tbody.innerHTML += `<tr>
-      <td style="font-weight: bold;">${cod}</td>
-      <td class="left">${window.estoqueGlobal[cod].descricao}</td>
-      <td>${window.estoqueGlobal[cod].qtd} unidades</td>
-    </tr>`;
-  }
-
-  document.body.className = "mode-estoque";
-  setTimeout(() => { window.print(); }, 300);
-}
-</script>
+    </script>
 </body>
 </html>
